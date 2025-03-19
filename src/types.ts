@@ -1,3 +1,12 @@
+export type TrueWalletStatusCode =
+  | "SUCCESS"
+  | "TARGET_USER_REDEEMED"
+  | "INTERNAL_ERROR"
+  | "CANNOT_GET_OWN_VOUCHER"
+  | "VOUCHER_EXPIRED"
+  | "VOUCHER_OUT_OF_STOCK"
+  | "VOUCHER_NOT_FOUND";
+
 export interface TrueWalletVoucherResponse {
   status: {
     code: TrueWalletStatusCode;
@@ -10,15 +19,6 @@ export interface TrueWalletVoucherResponse {
     };
   };
 }
-
-export type TrueWalletStatusCode =
-  | "SUCCESS"
-  | "TARGET_USER_REDEEMED"
-  | "INTERNAL_ERROR"
-  | "CANNOT_GET_OWN_VOUCHER"
-  | "VOUCHER_EXPIRED"
-  | "VOUCHER_OUT_OF_STOCK"
-  | "VOUCHER_NOT_FOUND";
 
 export interface TrueWalletError {
   error: string;

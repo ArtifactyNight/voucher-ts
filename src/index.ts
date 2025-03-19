@@ -1,14 +1,14 @@
-import axios from "axios";
-import { voucherUrlSchema, extractVoucherHash } from "./validation";
 import {
   TrueWalletConfig,
   TrueWalletResult,
   TrueWalletVoucherResponse,
   TrueWalletStatusCode,
 } from "./types";
-
-export * from "./types";
-export * from "./validation";
+import {
+  validateVoucherUrl,
+  extractVoucherHash,
+  ValidationError,
+} from "./validation";
 
 const ERROR_MESSAGES: Record<TrueWalletStatusCode, string> = {
   TARGET_USER_REDEEMED: "ซองของขวัญนี้ถูกใช้ไปแล้ว",
@@ -30,26 +30,31 @@ export class TrueWalletVoucher {
   async redeem(url: string): Promise<TrueWalletResult> {
     try {
       // Validate URL format
-      await voucherUrlSchema.parseAsync({ url });
+      validateVoucherUrl(url);
 
       // Extract hash from URL
       const hash = extractVoucherHash(url);
 
       // Make API request
-      const response = await axios.post<TrueWalletVoucherResponse>(
+      const response = await fetch(
         `https://gift.maythiwat.com/campaign/vouchers/${hash}/redeem`,
         {
-          mobile: this.config.mobile,
-          voucher_hash: hash,
-        },
-        {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            mobile: this.config.mobile,
+            voucher_hash: hash,
+          }),
         }
       );
 
-      const result = response.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = (await response.json()) as TrueWalletVoucherResponse;
 
       // Handle non-success cases
       if (result.status.code !== "SUCCESS") {
@@ -86,12 +91,20 @@ export class TrueWalletVoucher {
         originalData: result,
       };
     } catch (error) {
+      if (error instanceof ValidationError) {
+        return {
+          error: error.message,
+          code: "INTERNAL_ERROR",
+        };
+      }
+
       if (error instanceof Error) {
         return {
           error: error.message,
           code: "INTERNAL_ERROR",
         };
       }
+
       return {
         error: "Unknown error occurred",
         code: "INTERNAL_ERROR",
@@ -99,3 +112,6 @@ export class TrueWalletVoucher {
     }
   }
 }
+
+export * from "./types";
+export * from "./validation";
