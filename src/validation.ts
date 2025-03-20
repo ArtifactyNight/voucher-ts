@@ -5,7 +5,7 @@ export class ValidationError extends Error {
   }
 }
 
-const TRUEWALLET_URL_REGEX =
+export const TRUEWALLET_URL_REGEX =
   /^https:\/\/gift\.truemoney\.com\/campaign\/\?v=[a-zA-Z0-9]+$/;
 
 export function validateVoucherUrl(url: string): void {
